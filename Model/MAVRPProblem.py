@@ -31,18 +31,22 @@ class Problem:
             raise ValueError(f"Error reading file {e}")
         
         depot = Depot()
-        depot.coord_x = instance["x"].iloc[-2]
-        depot.coord_y = instance["y"].iloc[-2]
-        self.addDepot(depot)
+        depot.coord_x = round(instance["x"].iloc[-2], 4)  
+        depot.coord_y = round(instance["y"].iloc[-2], 4) 
+        self.addDepot(depot)  
 
-        for _,row in instance[:-1].iterrows():
-            node  =Node()
-            node.id = int(row["Ids"])
-            node.coord_x = float(row["x"])
-            node.coord_y = float(row["y"])
-            node.demand = float(row["demand_linehaul"])
-            node.service_time = float(row["service_time"])
+        for _, row in instance[:-1].iterrows():
+            node = Node()  
+            node.id = int(row["Ids"]) 
+            node.coord_x = round(float(row["x"]), 4)  
+            node.coord_y = round(float(row["y"]), 4)  
+            node.demand = round(float(row["demand_linehaul"]), 4)  
+            node.service_time = round(float(row["service_time"]), 4)  
+            node.est = round(float(row["time_window_start"]), 4) 
+            node.lst = round(float(row["time_window_end"]), 4) 
+
             self.addNode(node)
+
     
     def printProblem(self):
         print("Depot: ")

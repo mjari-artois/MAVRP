@@ -25,9 +25,9 @@ class Solver:
 
     def SplitGiantTour(self, depot: Depot, problem: Problem):
         n = len(self.GiantTour)
-        V = [float("inf")] * (n + 1)  # Cost array
-        P = [0] * (n + 1)  # Predecessor array
-        V[0] = 0  # Cost at depot is 0
+        V = [float("inf")] * (n + 1)
+        P = [0] * (n + 1)  
+        V[0] = 0 
 
         for i in range(1, n + 1):
             j = i
@@ -36,17 +36,21 @@ class Solver:
 
             while j <= n:
                 sj = self.GiantTour[j - 1] - 1  # Adjust for 0-based indexing
-
                 load += problem.getNode(sj).demand
-
                 if i == j:
-                    cost = (
-                        self.calculateDistance(depot, problem.getNode(sj)) +
-                        problem.getNode(sj).service_time +
-                        self.calculateDistance(problem.getNode(sj), depot)
-                    )
+                    time = max(
+                        self.calculateDistance(depot,problem.getNode(sj)),
+                        problem.getNode(sj).est
+                    ) + problem.getNode(sj).service_time + self.calculateDistance(depot,problem.getNode(sj))
+                    distance = self.calculateDistance(depot, problem.getNode(sj)) + self.calculateDistance(depot, problem.getNode(sj))
+                    cost = distance + problem.getNode(sj).service_time
                 else:
                     prev_sj = self.GiantTour[j - 2] - 1  # Previous customer
+                    time = max(
+                        cost - self.calculateDistance(depot,problem.getNode(prev_sj)) + self.calculateDistance(problem.getNode(sj),problem.getNode(prev_sj)),
+                        problem.getNode(sj).est
+                    )
+                    distance = distance - self.calculateDistance(depot,problem.getNode(prev_sj)) + self.calculateDistance(problem.getNode(sj),problem.getNode(prev_sj))
                     cost = (
                         cost -
                         self.calculateDistance(problem.getNode(prev_sj), depot) +
@@ -55,7 +59,15 @@ class Solver:
                         self.calculateDistance(problem.getNode(sj), depot)
                     )
 
-                if V[i - 1] + cost < V[j] and load <= problem._vehicle_capacity + 1e-6:
+                if load  >= problem._vehicle_capacity or time  >= problem.getNode(sj).lst:
+                    break
+                
+                else:
+                    time = time + problem.getNode(sj).service_time + self.calculateDistance(depot,problem.getNode(sj))
+                    distance = distance  + self.calculateDistance(depot,problem.getNode(sj))
+
+
+                if V[i - 1] + cost < V[j]:
                     V[j] = V[i - 1] + cost
                     P[j] = i - 1
 
@@ -107,10 +119,47 @@ class Solver:
                 tour_cost += self.calculateDistance(last_node, depot)
 
             total_cost += tour_cost
-            print(f"Load: {load}")
+            print(f"Load: {round(float(load),4)}")
             # print(f"Cost of Tour {index}: {tour_cost:.2f}")
 
         print(f"Total Cost of Solution: {total_cost:.2f}")
+
+
+    def getTimeofEachNode(self,depot:Depot,problem:Problem):
+        for index,tour in enumerate(self.Solution):
+            print(f"Tour {index}")
+        
+            for zinedx,node in enumerate(tour):
+                node = node -1
+                if zinedx==0:
+                    time = max(
+                            self.calculateDistance(depot,problem.getNode(node)),
+                            problem.getNode(node).est
+                        ) + problem.getNode(node).service_time
+                    distance = self.calculateDistance(depot, problem.getNode(node)) + self.calculateDistance(depot, problem.getNode(node))
+                    cost = distance + problem.getNode(node).service_time
+                else:
+                    time = max(
+                            cost - self.calculateDistance(depot,problem.getNode(prev_sj)) + self.calculateDistance(problem.getNode(node),problem.getNode(prev_sj)),
+                            problem.getNode(node).est
+                        )+ problem.getNode(node).service_time
+                    distance = distance - self.calculateDistance(depot,problem.getNode(prev_sj)) + self.calculateDistance(problem.getNode(node),problem.getNode(prev_sj))
+                    cost = (
+                            cost -
+                            self.calculateDistance(problem.getNode(prev_sj), depot) +
+                            self.calculateDistance(problem.getNode(prev_sj), problem.getNode(node)) +
+                            problem.getNode(node).service_time +
+                            self.calculateDistance(problem.getNode(node), depot)
+                        )
+                prev_sj = node
+                time = round(time,3)
+                print(f" node : {problem.getNode(node).id} time {time} [{problem.getNode(node).est},{problem.getNode(node).lst}]" )
+
+                
+                
+                
+
+            
 
                 
 
