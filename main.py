@@ -3,16 +3,25 @@ from Model.MAVRPTour import Tour
 from Model.MAVRPSolution import Solution 
 from Solver.RandomSolution import Solver
 
+# First part remains the same
 problem = Problem()
-problem.readProblem(".\Data\OVRPMBLTW.csv")
+problem.readProblem("OVRPMBLTW.csv")
 solver = Solver()
 solver.GenerateGiantTour(problem)
 solver.PrintGiantTour()
-V,P = solver.SplitGiantTour(problem.getDepot(),problem)
-print(P)
+V, P = solver.SplitGiantTour(problem.getDepot(), problem)
 solution = solver.SolutionExtraction(P)
-solver.PrintSolution(problem,problem._depot[0])
-solver.getTimeofEachNode(problem._depot[0],problem)
+print("Raw solution:", solution)
+
+# Add detailed route printing
+print("\nDetailed Route Analysis:")
+solver.print_route_details(problem.getDepot(), problem)
+
+# Optionally validate each route
+print("\nValidating Routes:")
+for route_idx, route in enumerate(solution, 1):
+    is_valid, message = solver.validate_route(problem.getDepot(), problem, route)
+    print(f"Route {route_idx}: {message}")
 
 #problem.printProblem()
 # nodes = problem.getNodes()

@@ -35,15 +35,15 @@ class Problem:
         depot.coord_y = round(instance["y"].iloc[-2], 4) 
         self.addDepot(depot)  
 
-        for _, row in instance[:-1].iterrows():
+        for index, row in instance[:-1].iterrows():
             node = Node()  
-            node.id = int(row["Ids"]) 
+            node.id = index 
             node.coord_x = round(float(row["x"]), 4)  
             node.coord_y = round(float(row["y"]), 4)  
             node.demand = round(float(row["demand_linehaul"]), 4)  
             node.service_time = round(float(row["service_time"]), 4)  
             node.est = round(float(row["time_window_start"]), 4) 
-            node.lst = round(float(row["time_window_end"]), 4) 
+            node.lst = round(float(row["time_window_end"]+4), 4) 
 
             self.addNode(node)
 
