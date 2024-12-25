@@ -24,6 +24,13 @@ class Problem:
     def getNode(self,c):
         return self._nodes[c]
     
+    def getCountlinehaul(self):
+        count = 0
+        for node in self._nodes:
+            if node.demand_linehaul > 0:
+                count += 1
+        return count
+    
     def readProblem(self,filePath):
         try:
             instance = pd.read_csv(filePath)
@@ -35,13 +42,14 @@ class Problem:
         depot.coord_y = instance["y"].iloc[-2]
         self.addDepot(depot)
 
-        for _,row in instance[:-1].iterrows():
+        for index,row in instance[:-1].iterrows():
             node  =Node()
-            node.id = int(row["Ids"])
-            node.coord_x = float(row["x"])
-            node.coord_y = float(row["y"])
-            node.demand = float(row["demand_linehaul"])
-            node.service_time = float(row["service_time"])
+            node.id = index
+            node.coord_x = round(float(row["x"]),4)
+            node.coord_y = round(float(row["y"]),4)
+            node.demand_linehaul= round(float(row["demand_linehaul"]),4)
+            node.demand_backhaul = round(float(row["demand_backhaul"]),4)
+            node.service_time = round(float(row["service_time"]),4)
             self.addNode(node)
     
     def printProblem(self):
