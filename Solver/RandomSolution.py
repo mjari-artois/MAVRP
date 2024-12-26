@@ -150,7 +150,7 @@ class Solver:
                 tour_cost += self.calculateDistance(last_node, depot)
 
             total_cost += tour_cost
-            print(f"Load: {load}")
+            print(f"Load: {round(load,4)}")
             # print(f"Cost of Tour {index}: {tour_cost:.2f}")
 
         print(f"Total Cost of Solution: {total_cost:.2f}")
