@@ -59,7 +59,6 @@ class Solver:
 
                 # Check constraints
                 if time > problem.getNode(sj).lst or load > problem._vehicle_capacity:
-                    print(f"it should stop at this moment {sj}")
                     break
                 else:
                     time += problem.getNode(sj).service_time + self.calculateDistance(problem.getNode(sj), depot)
