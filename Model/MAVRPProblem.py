@@ -43,7 +43,7 @@ class Problem:
             node.demand = round(float(row["demand_linehaul"]), 4)  
             node.service_time = round(float(row["service_time"]), 4)  
             node.est = round(float(row["time_window_start"]), 4) 
-            node.lst = round(float(row["time_window_end"]+4), 4) 
+            node.lst = round(float(row["time_window_end"]+2), 4) 
 
             self.addNode(node)
 
