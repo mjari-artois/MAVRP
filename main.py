@@ -4,14 +4,13 @@ from Model.MAVRPSolution import Solution
 from Solver.RandomSolution import Solver
 
 problem = Problem()
-problem.readProblem(".\Data\OVRPMBLTW.csv")
+problem.readProblem("OVRPMBLTW.csv")
 solver = Solver()
 solver.GenerateGiantTour(problem)
 solver.PrintGiantTour()
 V,P = solver.SplitGiantTour(problem.getDepot(),problem)
 solution = solver.SolutionExtraction(P)
 solver.PrintSolution(problem,problem._depot[0])
-
 #problem.printProblem()
 # nodes = problem.getNodes()
 # tour = Tour()

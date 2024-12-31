@@ -35,13 +35,13 @@ class Problem:
         depot.coord_y = instance["y"].iloc[-2]
         self.addDepot(depot)
 
-        for _,row in instance[:-1].iterrows():
+        for index,row in instance[:-1].iterrows():
             node  =Node()
-            node.id = int(row["Ids"])
-            node.coord_x = float(row["x"])
-            node.coord_y = float(row["y"])
-            node.demand = float(row["demand_linehaul"])
-            node.service_time = float(row["service_time"])
+            node.id = index
+            node.coord_x = round(float(row["x"]),3)
+            node.coord_y = round(float(row["y"]),3)
+            node.demand = round(float(row["demand_linehaul"]),3)
+            node.service_time = round(float(row["service_time"]),3)
             self.addNode(node)
     
     def printProblem(self):

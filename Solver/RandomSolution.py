@@ -35,10 +35,10 @@ class Solver:
             cost = 0
 
             while j <= n:
-                sj = self.GiantTour[j - 1] - 1  # Adjust for 0-based indexing
+                sj = self.GiantTour[j - 1]  # Adjust for 0-based indexing
+                load += problem.getNode(sj).demand  # Update the load
 
-                load += problem.getNode(sj).demand
-
+                # Calculate cost for the first customer (if i == j) or the subsequent ones
                 if i == j:
                     cost = (
                         self.calculateDistance(depot, problem.getNode(sj)) +
@@ -46,7 +46,7 @@ class Solver:
                         self.calculateDistance(problem.getNode(sj), depot)
                     )
                 else:
-                    prev_sj = self.GiantTour[j - 2] - 1  # Previous customer
+                    prev_sj = self.GiantTour[j - 2]  # Previous customer
                     cost = (
                         cost -
                         self.calculateDistance(problem.getNode(prev_sj), depot) +
@@ -55,28 +55,37 @@ class Solver:
                         self.calculateDistance(problem.getNode(sj), depot)
                     )
 
-                if V[i - 1] + cost < V[j] and load <= problem._vehicle_capacity + 1e-6:
+                # Check if the vehicle load exceeds capacity
+                if load <= problem._vehicle_capacity and V[i - 1] + cost < V[j]:
                     V[j] = V[i - 1] + cost
-                    P[j] = i - 1
+                    P[j] = i - 1  # Update the predecessor to backtrack the tour
 
                 j += 1
 
         return V, P
 
 
+
     def SolutionExtraction(self, P):
-       
         j = len(P) - 1  # Start from the end of the tour
+        solution = []  # List to store the sub-tours
 
         while j > 0:
             route = []
             for k in range(P[j] + 1, j + 1):
-                route.append(self.GiantTour[k - 1])
-            self.Solution.insert(0, route)  # Insert at the beginning to maintain order
+                route.append(self.GiantTour[k - 1])  # Extract the sub-tour
+            solution.insert(0, route)  # Insert at the beginning to maintain order
             j = P[j]  # Move to predecessor
 
+        self.Solution = solution  # Store the final solution in the object
         return self.Solution
 
+    def testmanysolutions(self, problem: Problem, depot: Depot):
+        for i in range(10):
+            V, P = self.SplitGiantTour(depot, problem)
+            solution = self.SolutionExtraction(P)
+            self.PrintSolution(problem, depot)
+            print("\n")
 
     def PrintGiantTour(self):
         print(f"length of the GiantTour: {len(self.GiantTour)}")
@@ -92,22 +101,22 @@ class Solver:
             tour_cost = 0
 
             for node in sol:
-                load += problem._nodes[node - 1].getDemand()
+                load += problem._nodes[node].getDemand()
 
             if len(sol) > 0:
-                first_node = problem._nodes[sol[0] - 1]
+                first_node = problem._nodes[sol[0] ]
                 tour_cost += self.calculateDistance(depot, first_node)
 
                 for i in range(len(sol) - 1):
-                    current_node = problem._nodes[sol[i] - 1]
-                    next_node = problem._nodes[sol[i + 1] - 1]
+                    current_node = problem._nodes[sol[i] ]
+                    next_node = problem._nodes[sol[i + 1] ]
                     tour_cost += self.calculateDistance(current_node, next_node)
 
-                last_node = problem._nodes[sol[-1] - 1]
+                last_node = problem._nodes[sol[-1]]
                 tour_cost += self.calculateDistance(last_node, depot)
 
             total_cost += tour_cost
-            print(f"Load: {load}")
+            print(f"Load: {load:.3f}")
             # print(f"Cost of Tour {index}: {tour_cost:.2f}")
 
         print(f"Total Cost of Solution: {total_cost:.2f}")
