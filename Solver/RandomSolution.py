@@ -28,25 +28,36 @@ class Solver:
         V = [float("inf")] * (n + 1)  # Cost array
         P = [0] * (n + 1)  # Predecessor array
         V[0] = 0  # Cost at depot is 0
-    
+
         for i in range(1, n + 1):
             j = i
             demand_linehaul = 0
             demand_backhaul = 0
             cost = 0
-            
+            has_linehaul = False
+            has_backhaul = False
 
             while j <= n:
                 sj = self.GiantTour[j - 1]  # Adjust for 0-based indexing
                 node = problem.getNode(sj)
-                
 
-                if node.demand_linehaul>0:
+                # Check the type of node and update demands
+                if node.demand_linehaul > 0:
+                    if has_backhaul:
+                        # Cannot add linehaul after backhaul
+                        break
                     demand_linehaul += node.demand_linehaul
+                    has_linehaul = True
                 elif node.demand_backhaul > 0:
+                    if not has_linehaul and not has_backhaul:
+                        # Start of a backhaul-only route
+                        has_backhaul = True
+                    elif has_linehaul and not has_backhaul:
+                        # Switching from linehaul to backhaul is allowed
+                        has_backhaul = True
                     demand_backhaul += node.demand_backhaul
-                    
 
+                # Calculate the cost of the route
                 if i == j:
                     cost = (
                         self.calculateDistance(depot, problem.getNode(sj)) +
@@ -63,13 +74,21 @@ class Solver:
                         self.calculateDistance(problem.getNode(sj), depot)
                     )
 
-                if V[i - 1] + cost < V[j] and demand_backhaul <= problem._vehicle_capacity + 1e-6 and demand_linehaul <= problem._vehicle_capacity + 1e-6 and demand_linehaul+demand_backhaul <= problem._vehicle_capacity + 1e-6:
+                # Check capacity and update costs
+                if (V[i - 1] + cost < V[j] and
+                    demand_backhaul <= problem._vehicle_capacity and
+                    demand_linehaul <= problem._vehicle_capacity):
                     V[j] = V[i - 1] + cost
                     P[j] = i - 1
 
                 j += 1
 
+        print(P)
+        print(n)
+        print(len(P))
         return V, P
+
+
 
 
 
