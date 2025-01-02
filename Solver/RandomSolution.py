@@ -44,8 +44,9 @@ class Solver:
                 # Check the type of node and update demands
                 if node.demand_linehaul > 0:
                     if has_backhaul:
-                        # Cannot add linehaul after backhaul
-                        break
+                        # Check if space allows adding linehaul demands
+                        if demand_backhaul + node.demand_linehaul > problem._vehicle_capacity:
+                            break  # Cannot add linehaul due to capacity
                     demand_linehaul += node.demand_linehaul
                     has_linehaul = True
                 elif node.demand_backhaul > 0:
@@ -55,6 +56,10 @@ class Solver:
                     elif has_linehaul and not has_backhaul:
                         # Switching from linehaul to backhaul is allowed
                         has_backhaul = True
+
+                    # Check if space allows adding backhaul demands
+                    if demand_linehaul + node.demand_backhaul > problem._vehicle_capacity:
+                        break  # Cannot add backhaul due to capacity
                     demand_backhaul += node.demand_backhaul
 
                 # Calculate the cost of the route
@@ -76,8 +81,8 @@ class Solver:
 
                 # Check capacity and update costs
                 if (V[i - 1] + cost < V[j] and
-                    demand_backhaul <= problem._vehicle_capacity and
-                    demand_linehaul <= problem._vehicle_capacity):
+                    demand_backhaul +1e-3<= problem._vehicle_capacity and
+                    demand_linehaul +1e-3<= problem._vehicle_capacity):
                     V[j] = V[i - 1] + cost
                     P[j] = i - 1
 
@@ -87,6 +92,7 @@ class Solver:
         print(n)
         print(len(P))
         return V, P
+
 
 
 
@@ -110,34 +116,69 @@ class Solver:
     def DisplaySolution(self, depot: Depot, problem: Problem):
         print("Solution Details:")
         print("=" * 50)
-        
-        tour_count = 1
-        for route in self.Solution:
-            linehaul_load = 0
-            backhaul_load = 0
-            customer_types = []
 
+        tour_count = 1
+        overall_linehaul_load = 0
+        overall_backhaul_load = 0
+
+        for route in self.Solution:
+            # Calculate the initial linehaul load
+            linehaul_load = sum(problem.getNode(node_id).demand_linehaul for node_id in route)
+            backhaul_load = 0
+            vehicle_load = linehaul_load  # Vehicle starts with all linehaul demands
+
+            # Header for the tour
             print(f"Tour {tour_count}:")
-            print(f"  Depot -> ", end="")
+            print(f"{'Node':<15}{'Linehaul Demand':<20}{'Backhaul Demand':<20}{'Vehicle Load':<15}{'Type':<10}")
+            print("-" * 80)
+
+            # Add depot as the starting point
+            print(f"{'Depot':<15}{0:<20}{0:<20}{format(vehicle_load, '.4f'):<15}{'Depot':<10}")
 
             for node_id in route:
                 node = problem.getNode(node_id)
-                print(f"Customer {node_id} -> ", end="")
-                
-                if node.demand_linehaul > 0:
-                    linehaul_load += node.demand_linehaul
-                    customer_types.append("Linehaul")
-                elif node.demand_backhaul > 0:
-                    backhaul_load += node.demand_backhaul
-                    customer_types.append("Backhaul")
+                node_type = "Linehaul" if node.demand_linehaul > 0 else "Backhaul"
+                linehaul_demand = node.demand_linehaul
+                backhaul_demand = node.demand_backhaul
 
-            print("Depot")
-            print(f"  Total Linehaul Load: {linehaul_load}")
-            print(f"  Total Backhaul Load: {backhaul_load}")
-            print(f"  Customer Types: {', '.join(customer_types)}")
-            print("-" * 50)
+                # Update vehicle load
+                if linehaul_demand > 0:
+                    vehicle_load -= linehaul_demand  # Delivering linehaul demand
+                if backhaul_demand > 0:
+                    vehicle_load += backhaul_demand  # Picking up backhaul demand
+
+                # Update cumulative loads
+                if linehaul_demand > 0:
+                    overall_linehaul_load += linehaul_demand
+                if backhaul_demand > 0:
+                    overall_backhaul_load += backhaul_demand
+
+                # Print the row for the current node
+                print(f"{f'Customer {node_id}':<15}"
+                    f"{format(linehaul_demand, '.4f'):<20}"
+                    f"{format(backhaul_demand, '.4f'):<20}"
+                    f"{format(vehicle_load, '.4f'):<15}"
+                    f"{node_type:<10}")
+
+            # Add depot as the ending point
+            print(f"{'Depot':<15}{0:<20}{0:<20}{format(vehicle_load, '.4f'):<15}{'Depot':<10}")
+
+            # Print total load details for the tour
+            print("-" * 80)
+            print(f"{'Total Linehaul Load Delivered:':<35}{format(linehaul_load, '.4f')}")
+            print(f"{'Total Backhaul Load Picked Up:':<35}{format(backhaul_load, '.4f')}")
+            print("-" * 80)
 
             tour_count += 1
+
+        # Print overall totals
+        print("Overall Solution Summary:")
+        print("=" * 50)
+        print(f"{'Total Linehaul Load Delivered:':<35}{format(overall_linehaul_load, '.4f')}")
+        print(f"{'Total Backhaul Load Picked Up:':<35}{format(overall_backhaul_load, '.4f')}")
+        print("=" * 50)
+
+
 
 
     def PrintGiantTour(self):
